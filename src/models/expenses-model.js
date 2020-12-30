@@ -8,8 +8,14 @@ const expenseSchema = new mongoose.Schema(
       trim: true,
       required: true,
     },
+
     note: {
       type: String,
+      trim: true,
+    },
+
+    date: {
+      type: Number,
       trim: true,
     },
 

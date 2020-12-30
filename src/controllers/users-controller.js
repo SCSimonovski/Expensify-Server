@@ -3,8 +3,6 @@ const { OAuth2Client } = require("google-auth-library");
 const User = require("../models/user-model.js");
 const HttpError = require("../error/http-error");
 
-const { sendWelcomeEmail, sendCancelationEmail } = require("../emails/account");
-
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 //////////////////////////////////////////////////////////
@@ -17,10 +15,11 @@ const createUser = async (req, res, next) => {
     const token = await user.generateAuthToken();
 
     await user.save();
-    // sendWelcomeEmail(user.email, user.name);
     res.status(201).send({ user, token });
   } catch (err) {
-    next(new HttpError("Unable to create an account", 422));
+    return next(
+      new HttpError("Signing up failed, please try again later.", 500)
+    );
   }
 };
 
@@ -50,7 +49,7 @@ const googleLogin = async (req, res, next) => {
   const { tokenId } = req.body;
 
   if (!tokenId) {
-    next(new HttpError("Unable to login with Google", 422));
+    return next(new HttpError("Unable to login with Google", 422));
   }
 
   try {
@@ -75,7 +74,7 @@ const googleLogin = async (req, res, next) => {
 
     res.send({ user, token });
   } catch (e) {
-    next(new HttpError("Unable to login with Google", 422));
+    return next(new HttpError("Unable to login with Google", 422));
   }
 };
 
@@ -122,18 +121,10 @@ const logoutAll = async (req, res, next) => {
 };
 
 //////////////////////////////////////////////////////////
-// Get user's profile ///////////////////////////////////////
-
-const getUser = async (req, res, next) => {
-  res.send(req.user);
-};
-
-//////////////////////////////////////////////////////////
 // Update User ///////////////////////////////////////////
 
 const updateUser = async (req, res, next) => {
   const user = req.user;
-
   const updates = Object.keys(req.body);
   const allowedUpdates = ["name", "email", "password"];
   const isValidOperation = updates.every((update) =>
@@ -141,7 +132,9 @@ const updateUser = async (req, res, next) => {
   );
 
   if (!isValidOperation) {
-    throw HttpError("Invalid updates!", 400);
+    return next(
+      new HttpError("Invalid inputs passed, please check your data.", 422)
+    );
   }
 
   try {
@@ -149,7 +142,9 @@ const updateUser = async (req, res, next) => {
     await user.save();
     res.send(user);
   } catch (err) {
-    next(err);
+    return next(
+      new HttpError("Something went wrong, could not update the user.", 500)
+    );
   }
 };
 
@@ -163,7 +158,9 @@ const deleteUser = async (req, res, next) => {
 
     res.send();
   } catch (err) {
-    next(err);
+    return next(
+      new HttpError("Something went wrong, could not delete user.", 500)
+    );
   }
 };
 
@@ -175,7 +172,6 @@ module.exports = {
   googleLogin,
   logoutUser,
   logoutAll,
-  getUser,
   updateUser,
   deleteUser,
 };

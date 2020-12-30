@@ -7,7 +7,6 @@ const {
   googleLogin,
   logoutUser,
   logoutAll,
-  getUser,
   updateUser,
   deleteUser,
 } = require("../controllers/users-controller");
@@ -20,9 +19,6 @@ router.post("/users/login", loginUser);
 router.post("/users/login/google", googleLogin);
 router.post("/users/logout", logoutUser);
 router.post("/users/logoutall", auth, logoutAll);
-
-// GET METHODS
-router.get("/users/profile", auth, getUser);
 
 // PATCH METHODS //
 router.patch("/users/profile", auth, updateUser);

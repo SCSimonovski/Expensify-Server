@@ -10,7 +10,9 @@ const createExpense = async (req, res, next) => {
     await expense.save();
     res.status(201).send(expense);
   } catch (err) {
-    next(err);
+    return next(
+      new HttpError("Creating expense failed, please try again.", 500)
+    );
   }
 };
 
@@ -24,12 +26,16 @@ const getExpenseById = async (req, res, next) => {
     });
 
     if (!expense) {
-      throw new HttpError("The expense was not found", 404);
+      return next(
+        new HttpError("Could not find expense for the provided id.", 404)
+      );
     }
 
     res.send(expense);
   } catch (err) {
-    next(err);
+    return next(
+      new HttpError("Something went wrong, could not find an expense.", 500)
+    );
   }
 };
 
@@ -43,12 +49,14 @@ const getAllExpenses = async (req, res, next) => {
     });
 
     if (!expenses) {
-      throw new HttpError("There's no expenses for that user", 404);
+      return next(new HttpError("Could not find expenses for that user.", 404));
     }
 
     res.send(expenses);
   } catch (err) {
-    next(err);
+    return next(
+      new HttpError("Something went wrong, could not find expenses.", 500)
+    );
   }
 };
 
@@ -58,13 +66,15 @@ const getAllExpenses = async (req, res, next) => {
 const updateExpense = async (req, res, next) => {
   const _id = req.params.id;
   const updates = Object.keys(req.body);
-  const allowedUpdates = ["description", "amount", "note"];
+  const allowedUpdates = ["description", "amount", "note", "date"];
   const isValidOperation = updates.every((update) =>
     allowedUpdates.includes(update)
   );
 
   if (!isValidOperation) {
-    throw new HttpError("Invalid updates", 400);
+    return next(
+      new HttpError("Invalid inputs passed, please check your data.", 422)
+    );
   }
 
   try {
@@ -75,12 +85,16 @@ const updateExpense = async (req, res, next) => {
     });
 
     if (!expense) {
-      throw new HttpError("The expense was not found", 404);
+      return next(
+        new HttpError("Could not find expense for the provided id.", 404)
+      );
     }
 
     res.send(expense);
   } catch (err) {
-    next(err);
+    return next(
+      new HttpError("Something went wrong, could not update the expense.", 500)
+    );
   }
 };
 
@@ -92,12 +106,16 @@ const deleteExpense = async (req, res, next) => {
     const expense = await Expense.findByIdAndDelete(req.params.id);
 
     if (!expense) {
-      throw new HttpError("The expense was not found", 404);
+      return next(
+        new HttpError("Could not find expense for the provided id.", 404)
+      );
     }
 
     res.send(expense);
   } catch (err) {
-    next(err);
+    return next(
+      new HttpError("Something went wrong, could not delete the item.", 500)
+    );
   }
 };
 
